@@ -1,11 +1,68 @@
 # app.py
 import streamlit as st
-from main import StudyBuddy
-import os
+from main import StudyBuddy  # Import from study_buddy.py
+import  os
 
 # Initialize StudyBuddy (which internally initializes both TheoryAgent and CreativeAgent)
-study_buddy = StudyBuddy(project_id="united-impact-440612-m8", location="global", engine_id="study-buddy_1731147577608", model_name='gemini-1.5-pro')
+study_buddy = StudyBuddy(project_id=os.getenv('PROJECT_ID'), location="global", engine_id=os.getenv('ENGINE_ID'), model_name=st.secrets['MODEL_NAME'])
 
 # Streamlit page configuration
 st.set_page_config(page_title="Study Buddy AI", page_icon=":sunglasses:", layout="wide")
 st.title("Study Buddy AI Chat")
+
+# Initialize chat history if not already present in session state
+if "messages" not in st.session_state:
+    st.session_state.messages = [{"role": "assistant", "content": "Hi! I'm your Study Buddy AI. How can I help you today?"}]
+    st.session_state.last_answer = ""  # Track the last answer provided
+
+# Function to display chat history
+def display_chat_history():
+    for message in st.session_state.messages:
+        with st.chat_message(message["role"]):
+            st.markdown(message["content"])
+
+# Display chat messages from history
+display_chat_history()
+
+# Accept user input
+if prompt := st.chat_input("Ask me anything about study tips or math concepts:"):
+    # Add user message to chat history
+    st.session_state.messages.append({"role": "user", "content": prompt})
+
+    # Display user message in chat message container
+    with st.chat_message("user"):
+        st.markdown(prompt)
+
+    # Check if the current question is related to the last one
+    last_message = st.session_state.messages[-2] if len(st.session_state.messages) > 1 else None
+    is_follow_up = False
+    if last_message:
+        # Check if the user is asking for a clarification or further explanation
+        if "explain" in prompt.lower() or "better" in prompt.lower():
+            is_follow_up = True
+
+    # If the question is a follow-up, include the previous explanation
+    if is_follow_up:
+        previous_answer = st.session_state.last_answer
+        prompt_with_context = f"Earlier, you asked me about solving quadratic equations. Here's my previous explanation: '{previous_answer}'. Now, you're asking for a better explanation: '{prompt}'. Please clarify and elaborate."
+
+    else:
+        prompt_with_context = prompt
+
+    # Pass the query along with chat history to the Creative Agent
+    with st.spinner("Thinking..."):
+        try:
+            # Response from the Creative Agent
+            creative_response = study_buddy.get_study_buddy_response(prompt_with_context)  # Pass the context to the Creative Agent
+        except Exception as e:
+            creative_response = f"Error: {e}"
+
+    # Display response from the Creative Agent
+    with st.chat_message("assistant"):
+        st.markdown(f"**Creative Agent:** {creative_response}")
+
+    # Add the Creative Agent's response to chat history
+    st.session_state.messages.append({"role": "assistant", "content": creative_response})
+
+    # Store the last answer for future context
+    st.session_state.last_answer = creative_response
