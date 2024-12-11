@@ -4,8 +4,9 @@ from google.api_core.client_options import ClientOptions
 from google.cloud import discoveryengine_v1 as discoveryengine
 import os
 
+api_key = os.getenv('GEMINI_API_KEY')
 # Set up the Gemini API Key
-genai.configure(api_key=os.environ['GEMINI_API_KEY'])
+genai.configure(api_key=api_key)
 
 class TheoryAgent:
     def __init__(self, project_id, location, engine_id):
