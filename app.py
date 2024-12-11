@@ -1,11 +1,10 @@
-# app.py
 import streamlit as st
 from main import StudyBuddy  # Import from study_buddy.py
-import  os
+import os
 
+# Get environment variables for API configuration
 project_id = os.getenv('PROJECT_ID')
 engine_id = os.getenv('ENGINE_ID')
-
 
 # Initialize StudyBuddy (which internally initializes both TheoryAgent and CreativeAgent)
 study_buddy = StudyBuddy(project_id=project_id, location="global", engine_id=engine_id, model_name="gemini-1.5-pro")
@@ -37,27 +36,11 @@ if prompt := st.chat_input("Ask me anything about study tips or math concepts:")
     with st.chat_message("user"):
         st.markdown(prompt)
 
-    # Check if the current question is related to the last one
-    last_message = st.session_state.messages[-2] if len(st.session_state.messages) > 1 else None
-    is_follow_up = False
-    if last_message:
-        # Check if the user is asking for a clarification or further explanation
-        if "explain" in prompt.lower() or "better" in prompt.lower():
-            is_follow_up = True
-
-    # If the question is a follow-up, include the previous explanation
-    if is_follow_up:
-        previous_answer = st.session_state.last_answer
-        prompt_with_context = f"Earlier, you asked me about solving quadratic equations. Here's my previous explanation: '{previous_answer}'. Now, you're asking for a better explanation: '{prompt}'. Please clarify and elaborate."
-
-    else:
-        prompt_with_context = prompt
-
     # Pass the query along with chat history to the Creative Agent
     with st.spinner("Thinking..."):
         try:
             # Response from the Creative Agent
-            creative_response = study_buddy.get_study_buddy_response(prompt_with_context)  # Pass the context to the Creative Agent
+            creative_response = study_buddy.get_study_buddy_response(prompt)  # Pass the prompt to the Creative Agent
         except Exception as e:
             creative_response = f"Error: {e}"
 
