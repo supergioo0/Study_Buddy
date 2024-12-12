@@ -6,7 +6,7 @@ import os
 
 api_key = os.getenv('GEMINI_API_KEY')
 # Set up the Gemini API Key
-genai.configure(api_key=api_key)
+genai.configure(api_key="AIzaSyC4Ptf8m0Ma5GwhYAvZwEPNkav6Nq7XwNk")
 
 class TheoryAgent:
     def __init__(self, project_id, location, engine_id):

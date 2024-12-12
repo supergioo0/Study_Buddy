@@ -6,7 +6,7 @@ import os
 # Get environment variables for API configuration
 project_id = os.getenv('PROJECT_ID')
 engine_id = os.getenv('ENGINE_ID')
-model = genai.GenerativeModel("gemini-1.5-flash")
+model = "gemini-1.5-pro"
 
 # Initialize StudyBuddy (which internally initializes both TheoryAgent and CreativeAgent)
 study_buddy = StudyBuddy(project_id=project_id, location="global", engine_id=engine_id, model_name=model) #Problem while importing study_buddy
