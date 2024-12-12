@@ -7,7 +7,7 @@ project_id = os.getenv('PROJECT_ID')
 engine_id = os.getenv('ENGINE_ID')
 
 # Initialize StudyBuddy (which internally initializes both TheoryAgent and CreativeAgent)
-study_buddy = StudyBuddy(project_id=project_id, location="global", engine_id=engine_id, model_name="gemini-1.5-pro")
+#study_buddy = StudyBuddy(project_id=project_id, location="global", engine_id=engine_id, model_name="gemini-1.5-pro")
 
 # Streamlit page configuration
 st.set_page_config(page_title="Study Buddy AI", page_icon=":sunglasses:", layout="wide")
