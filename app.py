@@ -9,7 +9,7 @@ engine_id = os.getenv('ENGINE_ID')
 model = "gemini-1.5-pro"
 
 # Initialize StudyBuddy (which internally initializes both TheoryAgent and CreativeAgent)
-study_buddy = StudyBuddy(project_id=project_id, location="global", engine_id=engine_id, model_name=model) #Problem while importing study_buddy
+study_buddy = StudyBuddy(project_id="united-impact-440612-m8", location="global", engine_id="study-buddy_1731147577608", model_name=model) #Problem while importing study_buddy
 
 # Streamlit page configuration
 st.set_page_config(page_title="Study Buddy AI", page_icon=":sunglasses:", layout="wide")
