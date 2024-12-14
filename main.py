@@ -112,7 +112,7 @@ class CreativeAgent:
                 "Gemini, please use this theory to provide a helpful, detailed, and concise answer to the user's query.\n\n"
                 f"User's Question: {user_input}\n\n"
                 "You are a study buddy like a tutor for math. Provide friendly and formal assistance."
-                "Do not mention the theory explicitly; instead, integrate it seamlessly into your response."
+                "Do not mention the theory explicitly; instead, integrate it seamlessly into your response. Based on the previous query"
                 "If user query seems to be a follow up question, please answer it yourself."
             )
 
@@ -130,7 +130,7 @@ class CreativeAgent:
         prompt = f"User's Question: {user_input}\n\n"
         prompt += "You are a friendly tutor who provides helpful, detailed, and concise answers to math problems."
         prompt += " Do not reference any previous theory responses, and provide your answer from scratch."
-        prompt += "If user query seems to be a follow up question, please answer it yourself."
+        prompt += "If user query seems to be a follow up question, please answer it yourself. Based on the previous query"
         prompt += "Do not answer any query outside of mathematical concepts"
 
         response = self.model.generate_content(prompt)
