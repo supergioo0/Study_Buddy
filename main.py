@@ -113,6 +113,7 @@ class CreativeAgent:
                 f"User's Question: {user_input}\n\n"
                 "You are a study buddy like a tutor for math. Provide friendly and formal assistance."
                 "Do not mention the theory explicitly; instead, integrate it seamlessly into your response."
+                "If user query seems to be a follow up question, please answer it yourself."
             )
 
             # Use the Gemini model to generate a response
@@ -129,6 +130,8 @@ class CreativeAgent:
         prompt = f"User's Question: {user_input}\n\n"
         prompt += "You are a friendly tutor who provides helpful, detailed, and concise answers to math problems."
         prompt += " Do not reference any previous theory responses, and provide your answer from scratch."
+        prompt += "If user query seems to be a follow up question, please answer it yourself."
+        prompt += "Do not answer any query outside of mathematical concepts"
 
         response = self.model.generate_content(prompt)
         return response.text if hasattr(response, 'text') else "No response generated."
