@@ -1,48 +1,58 @@
-# study_buddy.py
-import google.generativeai as genai
 from google.api_core.client_options import ClientOptions
 from google.cloud import discoveryengine_v1 as discoveryengine
-import os
+import google.generativeai as genai
 
-api_key = os.getenv('GEMINI_API_KEY')
-# Set up the Gemini API Key
-genai.configure(api_key=api_key)
+genai.configure(api_key="AIzaSyC4Ptf8m0Ma5GwhYAvZwEPNkav6Nq7XwNk")
+
+def create_session(project_id, location, engine_id, user_pseudo_id):
+    """Creates a session."""
+    client = discoveryengine.ConversationalSearchServiceClient()
+    parent = f"projects/{project_id}/locations/{location}/collections/default_collection/engines/{engine_id}"
+    request = discoveryengine.CreateSessionRequest(
+        parent=parent,
+        session=discoveryengine.Session(
+            user_pseudo_id=user_pseudo_id
+        )
+    )
+    return client.create_session(request)
 
 class TheoryAgent:
-    def __init__(self, project_id, location, engine_id):
+    def __init__(self, project_id, location, engine_id, user_pseudo_id):
         self.project_id = project_id
         self.location = location
         self.engine_id = engine_id
+        self.user_pseudo_id = user_pseudo_id
         self.client = self.initialize_client()
+        self.session = self.initialize_session()
 
     def initialize_client(self):
         """Initialize the Discovery Engine client."""
         try:
-            client_options = (
-                ClientOptions(api_endpoint=f"{self.location}-discoveryengine.googleapis.com")
-                if self.location != "global"
-                else None
-            )
-            return discoveryengine.ConversationalSearchServiceClient(client_options=client_options)
+            client = discoveryengine.ConversationalSearchServiceClient()
+            return client
         except Exception as e:
             print(f"DEBUG: Failed to initialize client: {e}")
-            raise RuntimeError("Failed to initialize Discovery Engine client.") from e
+            raise RuntimeError("Failed to initialize the Discovery Engine client.") from e
+
+    def initialize_session(self):
+        """Initialize a session."""
+        return create_session(self.project_id, self.location, self.engine_id, self.user_pseudo_id)
 
     def query(self, query_text):
-        """Query the Discovery Engine and return a dictionary with the answer_text."""
+        """Query the Discovery Engine with session."""
         try:
-            # Full resource name for the Search serving config
-            serving_config = f"projects/{self.project_id}/locations/{self.location}/collections/default_collection/engines/{self.engine_id}/servingConfigs/default_serving_config"
+            session_name = self.session.name
 
-            # Query Understanding and Answer Generation specifications
             query_understanding_spec = discoveryengine.AnswerQueryRequest.QueryUnderstandingSpec(
                 query_rephraser_spec=discoveryengine.AnswerQueryRequest.QueryUnderstandingSpec.QueryRephraserSpec(
                     disable=False,
                     max_rephrase_steps=1,
                 ),
                 query_classification_spec=discoveryengine.AnswerQueryRequest.QueryUnderstandingSpec.QueryClassificationSpec(
-                    types=[discoveryengine.AnswerQueryRequest.QueryUnderstandingSpec.QueryClassificationSpec.Type.ADVERSARIAL_QUERY,
-                           discoveryengine.AnswerQueryRequest.QueryUnderstandingSpec.QueryClassificationSpec.Type.NON_ANSWER_SEEKING_QUERY],
+                    types=[
+                        discoveryengine.AnswerQueryRequest.QueryUnderstandingSpec.QueryClassificationSpec.Type.ADVERSARIAL_QUERY,
+                        discoveryengine.AnswerQueryRequest.QueryUnderstandingSpec.QueryClassificationSpec.Type.NON_ANSWER_SEEKING_QUERY,
+                    ],
                 ),
             )
 
@@ -54,34 +64,31 @@ class TheoryAgent:
                     model_version="gemini-1.5-flash-001/answer_gen/v2"
                 ),
                 prompt_spec=discoveryengine.AnswerQueryRequest.AnswerGenerationSpec.PromptSpec(
-                    preamble="You are a theory agent. Provide concrete and concise answers. Be formally friendly."
+                    preamble="You are a theory agent. Provide concrete and concise answers. Be formally friendly. If the resources don't give an exact answer but can be used as theory use them."
                 ),
                 include_citations=False,
                 answer_language_code="en",
             )
 
-            # Create the request object
             request = discoveryengine.AnswerQueryRequest(
-                serving_config=serving_config,
+                serving_config=f"projects/{self.project_id}/locations/{self.location}/collections/default_collection/engines/{self.engine_id}/servingConfigs/default_serving_config",
                 query=discoveryengine.Query(text=query_text),
+                session=session_name,
                 query_understanding_spec=query_understanding_spec,
                 answer_generation_spec=answer_generation_spec,
             )
 
-            # Perform the query
             response = self.client.answer_query(request)
 
-            # Debugging: print the full API response
             print("DEBUG: Full response from TheoryAgent:", response)
 
-            # Extract and return only the 'answer_text'
             answer_text = response.answer.answer_text if hasattr(response, 'answer') and hasattr(response.answer, 'answer_text') else None
 
             if not answer_text:
                 print("DEBUG: No 'answer_text' found in the response.")
                 return {"error": "No answer_text found in the response."}
 
-            return {"answer_text": answer_text}  # Return as dictionary with answer_text
+            return {"answer_text": answer_text}
 
         except Exception as e:
             print(f"DEBUG: An error occurred in TheoryAgent query: {e}")
@@ -112,8 +119,10 @@ class CreativeAgent:
                 "Gemini, please use this theory to provide a helpful, detailed, and concise answer to the user's query.\n\n"
                 f"User's Question: {user_input}\n\n"
                 "You are a study buddy like a tutor for math. Provide friendly and formal assistance."
-                "Do not mention the theory explicitly; instead, integrate it seamlessly into your response. Based on the previous query"
+                "Do not mention the theory explicitly; instead, integrate it seamlessly into your response."
                 "If user query seems to be a follow up question, please answer it yourself."
+                "Whenever you need to write formulas or equations, format them using LaTeX syntax. Enclose the formula in $ for inline math or $$ for block math. For example: $ \displaystyle{ \int^{1}_{0} (2x+3) \, dx } $."
+                "Please also keep a track of what is being said in chat."
             )
 
             # Use the Gemini model to generate a response
@@ -131,7 +140,8 @@ class CreativeAgent:
         prompt += "You are a friendly tutor who provides helpful, detailed, and concise answers to math problems."
         prompt += " Do not reference any previous theory responses, and provide your answer from scratch."
         prompt += "If user query seems to be a follow up question, please answer it yourself. Based on the previous query"
-        prompt += "Do not answer any query outside of mathematical concepts"
+        prompt += "Do not answer any query outside of mathematical concepts."
+        prompt += "Whenever you need to write formulas or equations, format them using LaTeX syntax. Enclose the formula in $ for inline math or $$ for block math. For example: $ \displaystyle{ \int^{1}_{0} (2x+3) \, dx } $."
 
         response = self.model.generate_content(prompt)
         return response.text if hasattr(response, 'text') else "No response generated."
@@ -143,8 +153,8 @@ class CreativeAgent:
 
 
 class StudyBuddy:
-    def __init__(self, project_id, location, engine_id, model_name):
-        self.theory_agent = TheoryAgent(project_id, location, engine_id)
+    def __init__(self, project_id, location, engine_id, model_name, user_pseudo_id):
+        self.theory_agent = TheoryAgent(project_id, location, engine_id, user_pseudo_id)
         self.creative_agent = CreativeAgent(model_name, theory_agent=self.theory_agent)
         self.context = []  # Initialize context to store user queries and responses
 
@@ -158,3 +168,27 @@ class StudyBuddy:
         except Exception as e:
             print(f"DEBUG: Error in get_study_buddy_response: {e}")
             raise RuntimeError("StudyBuddy failed to generate a response.") from e
+
+
+# Example usage for testing
+if __name__ == "__main__":
+    # Setup
+    project_id = "united-impact-440612-m8"
+    location = "global"
+    engine_id = "study-buddy_1731147577608"
+    model_name = "gemini-1.5-pro"
+
+    # Initialize the Gemini client
+    API_KEY = "AIzaSyC4Ptf8m0Ma5GwhYAvZwEPNkav6Nq7XwNk"
+    genai.configure(api_key=API_KEY)
+
+
+    # Initialize the StudyBuddy system
+    study_buddy = StudyBuddy(project_id, location, engine_id, model_name)
+
+    # Test a query
+    user_query = "How to solve quadratic equations?"
+    response = study_buddy.get_study_buddy_response(user_query)
+
+    # Output
+    print("Study Buddy's Response:", response)

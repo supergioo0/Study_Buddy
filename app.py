@@ -2,14 +2,21 @@ import streamlit as st
 from main import StudyBuddy  # Import from study_buddy.py
 import google.generativeai as genai
 import os
+import uuid
 
-# Get environment variables for API configuration
-project_id = os.getenv('PROJECT_ID')
-engine_id = os.getenv('ENGINE_ID')
+user_pseudo_id = str(uuid.uuid4())
+project_id = "united-impact-440612-m8"
+engine_id = "study-buddy_1731147577608"
 model = "gemini-1.5-pro"
 
 # Initialize StudyBuddy (which internally initializes both TheoryAgent and CreativeAgent)
-study_buddy = StudyBuddy(project_id=project_id, location="global", engine_id=engine_id, model_name=model) #Problem while importing study_buddy
+study_buddy = StudyBuddy(
+    project_id=project_id,
+    location="global",
+    engine_id=engine_id,
+    model_name=model,
+    user_pseudo_id=user_pseudo_id
+)
 
 # Streamlit page configuration
 st.set_page_config(page_title="Study Buddy AI", page_icon=":sunglasses:", layout="wide")
@@ -38,11 +45,14 @@ if prompt := st.chat_input("Ask me anything about study tips or math concepts:")
     with st.chat_message("user"):
         st.markdown(prompt)
 
-    # Pass the query along with chat history to the Creative Agent
+    # Prepare context by joining the previous messages
+    context = "\n".join([message["content"] for message in st.session_state.messages])
+
+    # Pass the query along with the entire context to the Creative Agent
     with st.spinner("Thinking..."):
         try:
-            # Response from the Creative Agent
-            creative_response = study_buddy.get_study_buddy_response(prompt)  # Pass the prompt to the Creative Agent
+            # Pass both the prompt and the context to the response function
+            creative_response = study_buddy.get_study_buddy_response(f"{context}\n{prompt}")
         except Exception as e:
             creative_response = f"Error: {e}"
 
