@@ -2,7 +2,7 @@ from google.api_core.client_options import ClientOptions
 from google.cloud import discoveryengine_v1 as discoveryengine
 import google.generativeai as genai
 
-genai.configure(api_key="AIzaSyC4Ptf8m0Ma5GwhYAvZwEPNkav6Nq7XwNk")
+genai.configure(api_key="YOUR_API")
 
 def create_session(project_id, location, engine_id, user_pseudo_id):
     """Creates a session."""
