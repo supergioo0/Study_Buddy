@@ -168,27 +168,3 @@ class StudyBuddy:
         except Exception as e:
             print(f"DEBUG: Error in get_study_buddy_response: {e}")
             raise RuntimeError("StudyBuddy failed to generate a response.") from e
-
-
-# Example usage for testing
-if __name__ == "__main__":
-    # Setup
-    project_id = "united-impact-440612-m8"
-    location = "global"
-    engine_id = "study-buddy_1731147577608"
-    model_name = "gemini-1.5-pro"
-
-    # Initialize the Gemini client
-    API_KEY = "AIzaSyC4Ptf8m0Ma5GwhYAvZwEPNkav6Nq7XwNk"
-    genai.configure(api_key=API_KEY)
-
-
-    # Initialize the StudyBuddy system
-    study_buddy = StudyBuddy(project_id, location, engine_id, model_name)
-
-    # Test a query
-    user_query = "How to solve quadratic equations?"
-    response = study_buddy.get_study_buddy_response(user_query)
-
-    # Output
-    print("Study Buddy's Response:", response)
