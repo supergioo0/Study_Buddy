@@ -5,8 +5,8 @@ import os
 import uuid
 
 user_pseudo_id = str(uuid.uuid4())
-project_id = "YOUR_PROJECT_ID"
-engine_id = "YOUR_ENGINE_ID"
+project_id = os.getenv("PROJECT_ID")
+engine_id = os.getenv("ENGINE_ID")
 model = "gemini-1.5-pro"
 
 # Initialize StudyBuddy (which internally initializes both TheoryAgent and CreativeAgent)
