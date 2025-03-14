@@ -63,7 +63,7 @@ class TheoryAgent:
                 ignore_non_answer_seeking_query=False,
                 ignore_low_relevant_content=False,
                 model_spec=discoveryengine.AnswerQueryRequest.AnswerGenerationSpec.ModelSpec(
-                    model_version="gemini-1.5-flash-001/answer_gen/v2"
+                    model_version="gemini-2.0-flash-001"
                 ),
                 prompt_spec=discoveryengine.AnswerQueryRequest.AnswerGenerationSpec.PromptSpec(
                     preamble="You are a theory agent. Provide concrete and concise answers. Be formally friendly. If the resources don't give an exact answer but can be used as theory use them."
