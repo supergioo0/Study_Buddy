@@ -7,7 +7,7 @@ import uuid
 user_pseudo_id = str(uuid.uuid4())
 project_id = os.getenv("PROJECT_ID")
 engine_id = os.getenv("ENGINE_ID")
-model = "gemini-1.5-pro"
+model = "gemini-1.5-flash-001/answer_gen/v2"
 
 # Initialize StudyBuddy (which internally initializes both TheoryAgent and CreativeAgent)
 study_buddy = StudyBuddy(
