@@ -43,6 +43,8 @@ class TheoryAgent:
     def query(self, query_text):
         """Query the Discovery Engine with session."""
         try:
+            query_text = query_text[:2000]
+            
             session_name = self.session.name
 
             query_understanding_spec = discoveryengine.AnswerQueryRequest.QueryUnderstandingSpec(
@@ -63,7 +65,7 @@ class TheoryAgent:
                 ignore_non_answer_seeking_query=False,
                 ignore_low_relevant_content=False,
                 model_spec=discoveryengine.AnswerQueryRequest.AnswerGenerationSpec.ModelSpec(
-                    model_version="gemini-2.0-flash-001"
+                    model_version="gemini-1.5-flash-001/answer_gen/v2"
                 ),
                 prompt_spec=discoveryengine.AnswerQueryRequest.AnswerGenerationSpec.PromptSpec(
                     preamble="You are a theory agent. Provide concrete and concise answers. Be formally friendly. If the resources don't give an exact answer but can be used as theory use them."
@@ -105,17 +107,17 @@ class CreativeAgent:
 
     def formulate_response(self, user_input, theory_response, context):
         try:
-            # Add current query and response to context
+            
             context.append({'query': user_input, 'response': theory_response})
 
-            # Check if theory response is needed or skip it
+            
             if theory_response and not self.should_use_theory(user_input):
                 return self.generate_creative_response(user_input, context)
 
-            # If the theory response is useful, use it
+           
             answer_text = theory_response.get("answer_text", "No theory response available.")
 
-            # Formulate the prompt for Gemini
+            
             prompt = (
                 f"Here is the theory response:\n\n{answer_text}\n\n"
                 "Gemini, please use this theory to provide a helpful, detailed, and concise answer to the user's query.\n\n"
@@ -127,7 +129,7 @@ class CreativeAgent:
                 "Please also keep a track of what is being said in chat."
             )
 
-            # Use the Gemini model to generate a response
+            
             response = self.model.generate_content(prompt)
 
             return response.text if hasattr(response, 'text') else "No response generated."
