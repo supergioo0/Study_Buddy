@@ -1,6 +1,6 @@
 A multi-agent AI system that answers math questions accurately, without hallucinating, by grounding responses in over 2,000 pages of verified mathematical theory.
 Built as my MYP Personal Project over 4 months.
-Study_Buddy/images/image.png
+![](Study_Buddy/images/image.png)
 
 How It Works
 Study Buddy uses two agents working in tandem:
